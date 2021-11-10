@@ -18,12 +18,6 @@ def auth_user(email, password):
     return password_original == password
 
 
-class EcommerceUser(Resource):
-    def get(self):
-        # Retorna todos os produtos ao usuário
-        return 'hello'
-
-
 class Products(Resource):
     @auth.login_required
     def post(self):
@@ -44,14 +38,14 @@ class Products(Resource):
 
         return response
 
+
     def get(self):
         id = request.args.get('id')
 
         if not id:
             # Retornando todos os produtos
             return MySQL().return_all()
-        
-        if not id.isnumeric():
+        elif not id.isnumeric():
             return {'status': 'erro', 'mensagem': 'ID deve ser um número'}
         
         product = MySQL().return_product(int(id))
@@ -60,18 +54,40 @@ class Products(Resource):
 
         return product
 
+
     @auth.login_required
     def put(self):
         # Altera produts existentes
-        pass
+        data = request.json
+        id = request.args.get('id')
+
+        if not id:
+            return {'status': 'erro', 'mensagem': 'Um ID deve ser informado'}
+        elif not id.isnumeric():
+            return {'status': 'erro', 'mensagem': 'ID deve ser um número'}
+
+        try:
+            MySQL().update_product(id, data)
+            response = data
+        except KeyError:
+            response = {'status': 'erro', 'mensagem': 'Alguns dados não foram preenchidos'}
+
+        return response
+
 
     @auth.login_required
     def delete(self):
-        # Deleta produtos
-        pass
+        id = request.args.get('id')
+
+        if not id:
+            return {'status': 'erro', 'mensagem': 'Um ID deve ser informado'}
+        elif not id.isnumeric():
+            return {'status': 'erro', 'mensagem': 'ID deve ser um número'}
+
+        MySQL().delete_product(int(id))
+        return {'status': 'sucess', 'mensagem': f'O produto de ID {id} foi deletado'}
 
 
-api.add_resource(EcommerceUser, '/')
 api.add_resource(Products, '/admin/products')
 
 if __name__ == '__main__':

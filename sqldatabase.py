@@ -27,7 +27,7 @@ class MySQL:
         conn.commit()
 
 
-    def modify_product(self, id, new: dict):
+    def update_product(self, id, new: dict):
         sql.execute('update produtos set name = %s, price = %s, description = %s, inventory = %s, barcode = %s where id = %s',
                     (new['name'], new['price'], new['description'], new['inventory'], new['barcode'], int(id)))
         conn.commit()
