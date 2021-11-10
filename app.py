@@ -10,12 +10,12 @@ auth = HTTPBasicAuth()
 # Autenticação
 @auth.verify_password
 def auth_user(email, password):
-    check_user = AuthAdmin(email).password[0]
-    print(check_user)
-    if not check_user:
+    password_original = AuthAdmin(email).password[0]
+
+    if not password_original:
         return False
     
-    return check_user == password
+    return password_original == password
 
 
 class EcommerceUser(Resource):
@@ -24,12 +24,41 @@ class EcommerceUser(Resource):
         return 'hello'
 
 
-class Admin(Resource):
+class Products(Resource):
     @auth.login_required
     def post(self):
         # Cadastra novos produtos
         data = request.json
-        print(data)
+        
+        if not data:
+            response = {'status': 'erro', 'mensagem': 'Dados do produto estão vazios'}
+
+        try:
+            MySQL().set_product(
+                data['name'], data['price'], data['description'],
+                data['inventory'], data['barcode']
+            )
+            response = data
+        except KeyError:
+            response = {'status': 'erro', 'mensagem': 'Alguns dados não foram preenchidos'}
+
+        return response
+
+    def get(self):
+        id = request.args.get('id')
+
+        if not id:
+            # Retornando todos os produtos
+            return MySQL().return_all()
+        
+        if not id.isnumeric():
+            return {'status': 'erro', 'mensagem': 'ID deve ser um número'}
+        
+        product = MySQL().return_product(int(id))
+        if not product:
+            return {'status': 'erro', 'mensagem': 'Produto não encontrado'}
+
+        return product
 
     @auth.login_required
     def put(self):
@@ -43,7 +72,7 @@ class Admin(Resource):
 
 
 api.add_resource(EcommerceUser, '/')
-api.add_resource(Admin, '/admin')
+api.add_resource(Products, '/admin/products')
 
 if __name__ == '__main__':
     app.run(debug=True)
