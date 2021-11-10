@@ -15,7 +15,7 @@ sql = conn.cursor()
 sql.execute('create database if not exists APIMercado')
 sql.execute('use APIMercado')
 sql.execute('create table if not exists admins(email varchar(70), password varchar(255))')
-sql.execute('insert into admins values("admin", "admin")')
+# sql.execute('insert into admins values("admin", "admin")')
 sql.execute('create table if not exists produtos(id int auto_increment primary key, name varchar(70), price float, description text, inventory int, barcode bigint)')
 
 
@@ -79,9 +79,9 @@ class MySQL:
         conn.commit()
 
 
-class AdminAuth:
-    def __init__(self, user):
-        sql.execute('select password from admins where user = %s', (user, ))
+class AuthAdmin:
+    def __init__(self, email):
+        sql.execute('select password from admins where email = %s', (email, ))
         password = sql.fetchone()
 
         self.password = password
